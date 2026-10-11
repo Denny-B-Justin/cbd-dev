@@ -38,9 +38,7 @@ COUNTRY_COLORS = ["#4345aa", "#64cbd6", "#f26b23", "#37b37f", "#3675b7"]
 HOME_HREF = "?"                      # relative on purpose - see page_href()
 DASHBOARD_HREF = "?page=dashboard"
 RELEASE_NOTES_URL = "https://pim-pam.net/cbd-release-notes/"
-PIMPAM_URL = "https://pim-pam.net"
-FEEDBACK_URL = "https://www.pim-pam.net/feedback"
-RESOURCES_URL = "https://www.pim-pam.net/downloads"
+
 
 GLOBAL_REGIONS = [
     "Europe and Central Asia",
@@ -417,7 +415,6 @@ def build_header(current_page="", logo_src=None):
                 nav_link("Overview", HOME_HREF, ""),
                 nav_link("Dashboard", DASHBOARD_HREF, "dashboard"),
                 ext_link("Release notes", RELEASE_NOTES_URL),
-                ext_link("PIM-PAM.net", PIMPAM_URL),
             ]),
         ]),
     )
@@ -428,13 +425,10 @@ def build_footer(wb_logo_src=None):
         html.Div(className="footer-about", children=[
             html.Img(src=wb_logo_src, className="footer-wb", alt="World Bank Group") if wb_logo_src else None,
             html.P("A World Bank initiative promoting digital tools for smarter public investment and "
-                   "asset management, in collaboration with the Vienna Development Knowledge Center."),
+                   "asset management"),
         ]),
         html.Nav(className="footer-links", **{"aria-label": "Footer"}, children=[
-            html.A("PIM-PAM.net", href=PIMPAM_URL, target="_blank", rel="noopener noreferrer"),
-            html.A("Resources", href=RESOURCES_URL, target="_blank", rel="noopener noreferrer"),
             html.A("Release notes", href=RELEASE_NOTES_URL, target="_blank", rel="noopener noreferrer"),
-            html.A("Feedback", href=FEEDBACK_URL, target="_blank", rel="noopener noreferrer"),
         ]),
     ]))
 
