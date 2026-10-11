@@ -1,0 +1,9 @@
+1. Uploaded the csv files to MEGA Databricks
+2. Migrated the UI from React + FastAPI --> Python Dash + Flask
+3. Changed the country code in the CBD files to match official world bank ISO3 codes
+    "OKX" to "XKX" 
+    "WBG" to "PSE"
+4. Downloaded the World Bank Boundaries JSON --> Made UC Tables --> Route the Boundaries from UC Tables
+5. Some countries have teritories causing duplicates- 'FRA', 'ESP','ZWE','UMI','AUS', 'BES','UKR','GBR','PRT' in th WB Boundaries
+6. Create a new boundaries table that has deduplicated values after performing geospatial join (dissolve) for each of the duplicated countries
+
