@@ -1,11 +1,14 @@
 """
 pages.py
 --------
-Layout builders for the two pages of the app:
+Layout builders for the pages of the app:
 
-  home_layout()       the overview / landing page (with the "Launch Tool" button)
+  home_layout()       the overview / landing page (with the "Launch Tool" and
+                      "Country-wise analysis" buttons)
   dashboard_layout()  the single-page dashboard: tab switcher, top filter bar,
                       KPI strip, map + dynamic detail pane
+
+The third page, country-wise-cbd-analysis, has its own module (country_page.py).
 
 Layouts only describe structure and ids. All behaviour lives in app.py.
 Asset URLs are resolved by app.py (it owns the Dash instance) and passed in.
@@ -27,6 +30,11 @@ def _launch_button(label="Launch Tool", cls="btn btn-primary"):
     return dcc.Link(label, href=u.DASHBOARD_HREF, className=cls)
 
 
+def _country_button(label="Country-wise analysis", cls="btn btn-secondary"):
+    """Opens the country-wise page in a new browser tab."""
+    return html.A(label, href=u.COUNTRY_HREF, target="_blank", rel="noopener", className=cls)
+
+
 def _hero():
     return html.Section(className="hero", children=[
         html.Div(className="hero-map", **{"aria-hidden": "true"}),
@@ -38,6 +46,7 @@ def _hero():
                    "indicators behind it.", className="hero-lede"),
             html.Div(className="hero-actions", children=[
                 _launch_button(),
+                _country_button(),
                 html.A("See what's inside", href="#benchmarks", className="btn btn-ghost"),
             ]),
             html.P("Seven benchmarks. Up to 220 countries. Global comparisons and regional deep-dives.",
@@ -143,7 +152,10 @@ def _reading_scores():
 def _closing_cta():
     return html.Section(className="closing", children=html.Div(className="section-inner closing-inner", children=[
         html.H2("Ready to explore?", className="closing-title"),
-        _launch_button("Launch Tool", "btn btn-primary"),
+        html.Div(className="closing-actions", children=[
+            _launch_button("Launch Tool", "btn btn-primary"),
+            _country_button(),
+        ]),
     ]))
 
 

@@ -6,11 +6,15 @@ Country Benchmarking Dashboard - Dash app.
 Run with:  python app.py        then open  http://127.0.0.1:8050
 
 Structure
-  app.py        this file: app object, routing and every callback
+  app.py        this file: app object, routing and the Dashboard's callbacks
   pages.py      layouts for the Overview page and the one-page Dashboard
   datasets.py   registry of the seven benchmarks (copy, filters, data adapters)
   utils.py      colours, Plotly figure builders, reusable components
   queries.py    all Databricks access (unchanged)
+
+  country_page.py     the country-wise page: layout + its callbacks (attached below)
+  country_data.py     what to show for one country (re-uses datasets.py, no Dash)
+  country_figures.py  its maps and charts: selected country red, others lighter
 
 How the Dashboard page works
   view-store   which benchmark tab is active (mirrors the URL hash, e.g. #gtmi)
@@ -32,6 +36,7 @@ from dash import Dash, Input, Output, State, ALL, ctx, dcc, html, no_update, Pat
 from dash.exceptions import PreventUpdate
 from plotly.utils import PlotlyJSONEncoder
 
+import country_page
 import datasets as ds
 import pages
 import queries as q
@@ -83,6 +88,9 @@ app.index_string = """<!DOCTYPE html>
 #   (none)               Overview page
 #   ?page=dashboard      the dashboard; topic in the hash, e.g. #gtmi
 #   ?page=gtmi (etc.)    old per-dataset links still work and open that tab
+#   ?page=country-wise-cbd-analysis
+#                        every benchmark for one country on a single page;
+#                        country and peers in the hash, e.g. #country=KHM&peers=VNM,THA
 
 app.layout = html.Div([
     dcc.Location(id="url", refresh=False),
@@ -115,6 +123,10 @@ def render_page(search, hash_):
         # Seed the tab from the URL here: the hash callback below can fire before
         # this layout exists, which would leave a deep link on the default tab.
         return pages.dashboard_layout(LOGO_WHITE_URL, _view_from_url(search, hash_))
+    if page == u.COUNTRY_PAGE:
+        # Country and peers come from the hash and seed the dropdowns; after that the
+        # dropdowns are the source of truth (country_page keeps the hash in step).
+        return country_page.layout(LOGO_WHITE_URL, WB_LOGO_URL, hash_)
     return pages.not_found_layout(LOGO_WHITE_URL)
 
 
@@ -128,13 +140,16 @@ app.clientside_callback(
         if (page === "dashboard") {
             const t = views[(hash || "").replace("#", "")];
             title = (t || "Dashboard") + " - " + base;
+        } else if (page === %s) {
+            title = "Country-wise analysis - " + base;
         } else if (views[page]) {
             title = views[page] + " - " + base;
         }
         document.title = title;
         return "";
     }
-    """ % (json.dumps(u.BASE_TITLE), json.dumps({k: v["title"] for k, v in ds.DATASETS.items()})),
+    """ % (json.dumps(u.BASE_TITLE), json.dumps({k: v["title"] for k, v in ds.DATASETS.items()}),
+           json.dumps(u.COUNTRY_PAGE)),
     Output("title-sink", "title"),
     Input("url", "search"),
     Input("url", "hash"),
@@ -406,6 +421,14 @@ def update_components(sel, method, sample, view):
         return fig, f"Method: {method}  |  Sample: {sample}"
     return (u.build_components_figure(df, sel, q.get_country_name_map()),
             f"Method: {method}  |  Sample: {sample}")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Country-wise page (?page=country-wise-cbd-analysis): its callbacks live in
+# country_page.py and are attached here, to this app.
+# ══════════════════════════════════════════════════════════════════════════
+
+country_page.register_callbacks(app)
 
 
 if __name__ == "__main__":
