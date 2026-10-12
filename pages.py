@@ -17,6 +17,7 @@ Asset URLs are resolved by app.py (it owns the Dash instance) and passed in.
 from dash import dcc, html
 
 import datasets as ds
+import exports as ex
 import utils as u
 
 MAX_FILTERS = ds.MAX_FILTERS
@@ -31,8 +32,8 @@ def _launch_button(label="Launch Tool", cls="btn btn-primary"):
 
 
 def _country_button(label="Country-wise analysis", cls="btn btn-secondary"):
-    """Opens the country-wise page in a new browser tab."""
-    return html.A(label, href=u.COUNTRY_HREF, target="_blank", rel="noopener", className=cls)
+    """Second way in: start from one country and see every benchmark for it on one page (new tab)."""
+    return html.A(label, href=u.COUNTRY_HREF, target="_blank", rel="noopener", className=cls)   # opens in a new tab
 
 
 def _hero():
@@ -225,6 +226,9 @@ def dashboard_layout(logo_src, initial_view=ds.DEFAULT_VIEW):
                         id="ef-chart", value="frontier", className="segmented", inline=True,
                         options=[{"label": "Efficiency frontier", "value": "frontier"},
                                  {"label": "Component scores", "value": "components"}])),
+                    html.Div(id="viz-export", className="viz-export", children=ex.toolbar(
+                        "viz", "dl-viz-csv", title_sel=".context-title", sub_mode="filters",
+                        legend_sel="#legend .legend")),
                     html.Div(className="viz-frame", children=[
                         dcc.Loading(
                             type="circle", color=u.INDIGO, delay_show=250,
@@ -240,6 +244,8 @@ def dashboard_layout(logo_src, initial_view=ds.DEFAULT_VIEW):
                     html.Div(id="viz2-wrap", className="viz2-wrap", children=[
                         html.H3("What sits behind the efficiency scores", className="pane-h"),
                         html.P(id="viz2-sub", className="pane-help"),
+                        ex.toolbar("viz2", "dl-viz2-csv", title="Efficiency component scores",
+                                   base="infrastructure-efficiency-components", sub_sel="#viz2-sub"),
                         dcc.Graph(id="viz2", config={"displayModeBar": False},
                                   style={"flex": "1 1 0", "minHeight": 0, "width": "100%"}),
                     ]),
@@ -253,6 +259,7 @@ def dashboard_layout(logo_src, initial_view=ds.DEFAULT_VIEW):
         dcc.Store(id="view-store", data=initial_view),
         dcc.Store(id="sel-store", data=[]),
         dcc.Store(id="vm-store"),
+        dcc.Download(id="dl-data"),
     ])
 
 
