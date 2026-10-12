@@ -373,6 +373,8 @@ button { font-family: inherit; font-size: inherit; cursor: pointer; }
 }
 .select .dash-dropdown { min-height: 40px; border-radius: 6px; }
 
+.dash-dropdown-actions { display: none !important; }
+
 @media (max-width: 1180px) {
   .main-grid { grid-template-columns: minmax(0, 1fr) 340px; }
   .context { grid-template-columns: 1fr; }
