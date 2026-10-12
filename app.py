@@ -38,6 +38,7 @@ from plotly.utils import PlotlyJSONEncoder
 
 import country_page
 import datasets as ds
+import exports as ex
 import pages
 import queries as q
 import utils as u
@@ -421,6 +422,42 @@ def update_components(sel, method, sample, view):
         return fig, f"Method: {method}  |  Sample: {sample}"
     return (u.build_components_figure(df, sel, q.get_country_name_map()),
             f"Method: {method}  |  Sample: {sample}")
+
+
+# ── Downloads (the PNG is made in the browser by assets/export.js) ────────────
+
+@app.callback(
+    Output("dl-data", "data"),
+    Input("dl-viz-csv", "n_clicks"), Input("dl-viz2-csv", "n_clicks"),
+    State("vm-store", "data"), State("view-store", "data"), State("sel-store", "data"),
+    *[State(f"f{i}", "value") for i in range(pages.MAX_FILTERS)],
+    prevent_initial_call=True,
+)
+def download_csv(_viz, _viz2, vm, view, sel, *filter_values):
+    """CSV of the data behind the main chart (every country in the view) or behind the component chart."""
+    trig = ctx.triggered[0] if ctx.triggered else None
+    if not trig or not trig.get("value") or not vm or view not in ds.DATASETS:
+        raise PreventUpdate
+    sel = sel or []
+    roles = {iso: "Selected" for iso in sel} if sel else None
+    title = ds.DATASETS[view]["title"]
+    try:
+        if ctx.triggered_id == "dl-viz2-csv":
+            method, sample = (list(filter_values) + [None, None])[:2]
+            if not sel:
+                raise PreventUpdate
+            df = q.ef_get_scores(method=method, sample=sample, isos=sel)
+            if df.empty:
+                raise PreventUpdate
+            text = ex.components_csv(df, q.get_country_name_map(), roles, q.EF_SHORT_NAME_ORDER)
+            return dcc.send_string(text, ex.filename("infrastructure-efficiency-components"))
+        text = ex.vm_csv(vm, title, vm.get("region"), roles, ds.PEFA_LABELS if view == "pefa" else None)
+        return dcc.send_string(text, ex.filename(title, vm.get("region")))
+    except PreventUpdate:
+        raise
+    except Exception:
+        log.exception("CSV download failed for view %s", view)
+        raise PreventUpdate
 
 
 # ══════════════════════════════════════════════════════════════════════════

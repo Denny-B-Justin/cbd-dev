@@ -31,6 +31,7 @@ from dash.exceptions import PreventUpdate
 import country_data as cd
 import country_figures as cf
 import datasets as ds
+import exports as ex
 import queries as q
 import utils as u
 
@@ -83,6 +84,7 @@ def layout(logo_src, wb_logo_src, hash_=""):
         ]),
         u.build_footer(wb_logo_src),
         html.Div(id="cw-url-sink", hidden=True),
+        dcc.Download(id="cw-download"),
     ])
 
 
@@ -137,6 +139,16 @@ def _control(key, j, f):
     ])
 
 
+def _slug(text):
+    return ex.slug(text)
+
+
+def _toolbar(graph_id, csv_target, title, base, sub_sel=None, legend_sel=None):
+    """Save PNG + Download CSV above one chart. csv_target names the CSV the button asks for."""
+    return ex.toolbar(graph_id, {"type": "cw-csv", "target": csv_target}, title=title, base=base,
+                      sub_sel=sub_sel, legend_sel=legend_sel, key_sel="#cw-legend")
+
+
 def _panel(key):
     spec = ds.DATASETS[key]
     filters = cd.user_filters(key)
@@ -146,10 +158,14 @@ def _panel(key):
     if key == "ef":
         body = [
             html.Div(id="cw-ef-strip", className="cw-strip"),
+            _toolbar("cw-ef-frontier", "ef-frontier", spec["title"] + ": efficiency frontier",
+                     "infrastructure-efficiency-frontier", sub_sel="#cw-ef-strip"),
             dcc.Graph(id="cw-ef-frontier", className="cw-chart", config=graph_cfg,
                       style={"height": "360px", "width": "100%"}),
             html.H4("What sits behind the efficiency score", className="cw-sub"),
             html.P(id="cw-ef-sub", className="cw-sub-help"),
+            _toolbar("cw-ef-components", "ef-components", spec["title"] + ": component scores",
+                     "infrastructure-efficiency-components", sub_sel="#cw-ef-sub"),
             dcc.Graph(id="cw-ef-components", className="cw-chart", config={"displayModeBar": False},
                       style={"height": "320px", "width": "100%"}),
         ]
@@ -157,6 +173,8 @@ def _panel(key):
         strip = html.Div(id=f"cw-{key}-strip", className="cw-strip")
         table = html.Div(id=f"cw-{key}-table", className="cw-table-wrap")
         visual = [
+            _toolbar(f"cw-{key}-map", key, spec["title"], _slug(spec["title"]), sub_sel=f"#cw-{key}-strip",
+                     legend_sel=f"#cw-{key}-legend"),
             html.Div(className="cw-map-frame", children=dcc.Graph(
                 id=f"cw-{key}-map", className="cw-map", config=graph_cfg,
                 style={"height": f"{MAP_HEIGHT}px", "width": "100%"})),
@@ -528,11 +546,56 @@ def register_callbacks(app):
             raise PreventUpdate
         return ctx.triggered_id["iso"]
 
+    # ── Downloads ────────────────────────────────────────────────────────
+    _register_downloads(app)
+
     # ── Panels ───────────────────────────────────────────────────────────
     _register_ef(app)
     for key in cd.KEYS:
         if key != "ef":
             _register_map_panel(app, key)
+
+
+def _register_downloads(app):
+    """One callback serves every "Download CSV" button; the button's id says which chart it belongs to."""
+    filter_refs = [(k, j) for k in cd.KEYS for j in range(len(cd.user_filters(k)))]
+    states = [State(f"cw-{k}-f{j}", "value") for k, j in filter_refs]
+
+    @app.callback(
+        Output("cw-download", "data"),
+        Input({"type": "cw-csv", "target": ALL}, "n_clicks"),
+        State("cw-country", "value"), State("cw-peers", "value"), *states,
+        prevent_initial_call=True,
+    )
+    def download(_clicks, iso, peers, *values):
+        trig = ctx.triggered[0] if ctx.triggered else None
+        if not trig or not trig.get("value") or not isinstance(ctx.triggered_id, dict) or not iso:
+            raise PreventUpdate
+        target = ctx.triggered_id["target"]
+        iso, peers = cd.clean_selection(iso, peers)
+        by_filter = dict(zip(filter_refs, values))
+        names = cd.country_names()
+        roles = {iso: "Selected", **{p: "Peer" for p in peers}}
+        try:
+            if target == "ef-components":
+                method, sample = by_filter.get(("ef", 0)), by_filter.get(("ef", 1))
+                df = cd.ef_scores(method, sample, [iso] + list(peers))
+                return dcc.send_string(ex.components_csv(df, names, roles, q.EF_SHORT_NAME_ORDER),
+                                       ex.filename("infrastructure-efficiency-components", iso))
+            key = "ef" if target == "ef-frontier" else target
+            vals = () if key == "ef" else tuple(by_filter.get((key, j)) for j in range(len(cd.user_filters(key))))
+            scope = "World" if key == "ef" else cd.scope_for(key, iso)
+            if not scope:
+                raise PreventUpdate
+            vm = cd.panel_vm(key, scope, vals)
+            title = ds.DATASETS[key]["title"]
+            text = ex.vm_csv(vm, title, scope, roles, ds.PEFA_LABELS if key == "pefa" else None)
+            return dcc.send_string(text, ex.filename(title, scope, iso))
+        except PreventUpdate:
+            raise
+        except Exception:
+            log.exception("CSV download failed for %s / %s", target, iso)
+            raise PreventUpdate
 
 
 def _register_ef(app):

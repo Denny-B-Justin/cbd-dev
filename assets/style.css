@@ -373,8 +373,6 @@ button { font-family: inherit; font-size: inherit; cursor: pointer; }
 }
 .select .dash-dropdown { min-height: 40px; border-radius: 6px; }
 
-.dash-dropdown-actions { display: none !important; }
-
 @media (max-width: 1180px) {
   .main-grid { grid-template-columns: minmax(0, 1fr) 340px; }
   .context { grid-template-columns: 1fr; }
@@ -590,3 +588,20 @@ button { font-family: inherit; font-size: inherit; cursor: pointer; }
   .cw-table thead th:first-child { z-index: 3; }
   .cw-table tbody th { z-index: 2; }
 }
+
+/* Peers are capped at 3, so "Select All / Deselect All" in the peers list would only invite errors.
+   The list is rendered outside the dropdown's own element, so the rule has to be global; the app has
+   no other multi-select dropdown. */
+.dash-dropdown-actions { display: none !important; }
+
+/* ── 10. Chart exports: "Save PNG" and "Download CSV" (exports.py, assets/export.js) ─────────── */
+.exp-row { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
+.exp-btn { appearance: none; padding: 4px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
+  color: var(--indigo); font-family: inherit; font-size: 12.5px; font-weight: 500; line-height: 1.4; cursor: pointer; }
+.exp-btn:hover { background: #F1F4FA; border-color: var(--indigo); }
+.exp-btn.is-busy { opacity: .55; cursor: progress; }
+.exp-btn.is-error { border-color: #B4232F; color: #B4232F; }
+.exp-btn.is-error::after { content: " - could not save"; }
+.exp-row.is-inline { margin: 0; }
+.viz-export .exp-row { margin: 0; }
+.is-frontier .viz-col.show-components .viz-export { display: none; }
