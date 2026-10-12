@@ -37,6 +37,8 @@ COUNTRY_COLORS = ["#4345aa", "#64cbd6", "#f26b23", "#37b37f", "#3675b7"]
 
 HOME_HREF = "?"                      # relative on purpose - see page_href()
 DASHBOARD_HREF = "?page=dashboard"
+COUNTRY_PAGE = "country-wise-cbd-analysis"
+COUNTRY_HREF = f"?page={COUNTRY_PAGE}"
 RELEASE_NOTES_URL = "https://pim-pam.net/cbd-release-notes/"
 
 
@@ -91,6 +93,21 @@ def page_href(page_key, view=None):
         return HOME_HREF
     href = f"?page={page_key}"
     return f"{href}#{view}" if view else href
+
+
+def country_href(iso=None, peers=None):
+    """
+    Link to the country-wise page. The chosen country (and optional peers) live in
+    the URL hash, like the dashboard's topic does, so the page is never re-rendered
+    when they change and every view is shareable:
+        ?page=country-wise-cbd-analysis#country=KHM&peers=VNM,THA
+    """
+    if not iso:
+        return COUNTRY_HREF
+    frag = f"country={iso}"
+    if peers:
+        frag += "&peers=" + ",".join(peers)
+    return f"{COUNTRY_HREF}#{frag}"
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -394,7 +411,7 @@ def sorted_rows(vm):
 # ══════════════════════════════════════════════════════════════════════════
 
 def build_header(current_page="", logo_src=None):
-    """current_page: '' (overview) or 'dashboard'."""
+    """current_page: '' (overview), 'dashboard' or 'country' (country-wise analysis)."""
     def nav_link(label, href, key):
         current = key == current_page
         return dcc.Link(label, href=href, className="nav-link" + (" is-current" if current else ""))
@@ -414,6 +431,7 @@ def build_header(current_page="", logo_src=None):
             html.Nav(className="header-nav", **{"aria-label": "Main"}, children=[
                 nav_link("Overview", HOME_HREF, ""),
                 nav_link("Dashboard", DASHBOARD_HREF, "dashboard"),
+                nav_link("Country-wise analysis", COUNTRY_HREF, "country"),
                 ext_link("Release notes", RELEASE_NOTES_URL),
             ]),
         ]),

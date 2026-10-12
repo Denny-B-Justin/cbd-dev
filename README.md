@@ -7,12 +7,13 @@ its tables from **Databricks Unity Catalog** (previously local CSVs).
 ## What changed in the redesign
 
 The app used to be seven separate pages (one per dataset), each with its own
-sidebar, plus a home page that was a table. It is now two pages:
+sidebar, plus a home page that was a table. It is now three pages:
 
 | Page | URL | What it is |
 |------|-----|------------|
-| **Overview** | `/` | Plain-language introduction, "How it works" in three steps, the seven benchmarks grouped as *Global* and *Regional*, how to read the scores, and a **Launch Tool** button |
+| **Overview** | `/` | Plain-language introduction, "How it works" in three steps, the seven benchmarks grouped as *Global* and *Regional*, how to read the scores, and **Launch Tool** and **Country-wise analysis** buttons |
 | **Dashboard** | `/?page=dashboard#gccii` | Everything on one page (see below). The text after `#` is the active tab, so every view has a shareable link |
+| **Country-wise analysis** | `/?page=country-wise-cbd-analysis#country=KHM&peers=VNM,THA` | Pick one country and see every benchmark for it on one page (see below). The text after `#` holds the country and peers, so every view has a shareable link |
 
 Old links such as `?page=gtmi` still work and open the matching tab.
 
@@ -24,6 +25,18 @@ Old links such as `?page=gtmi` still work and open the matching tab.
 4. **Map** with a legend underneath that also counts the countries in each band.
 5. **Dynamic detail pane**: a ranked list of countries by default; click a country (map, list or search box) and it becomes a profile with the score, rank, comparison to the average and the indicators behind it. The selected country stays selected when you switch tabs. On the efficiency tab the pane compares up to five countries and a *Frontier | Component scores* switch toggles the two charts.
 
+**Country-wise analysis anatomy** (`country_page.py`)
+
+It is reached from the **Country-wise analysis** button on the Overview page (and a link in the header). It is a separate page, not a tab.
+
+1. **Selection bar** (stays at the top while you scroll): *Country* and *Compare with peers* (up to 3), plus a colour key. The selected country is always **red**; each peer gets its own colour; every other country is shown light.
+2. **Country header**: name, region and which of the seven benchmarks have data for it.
+3. **Panels in a grid, two across**: Infrastructure (efficiency | gap), Public investment management (PEFA | GovTech), Climate readiness (climate institutions | climate assessment), Regional deep-dive (PIM tracker, full width).
+4. Each map panel has a one-line summary for the selected country, a map framed on the country's region (selected country outlined in red, peers in their colour, everyone else faded), the legend, and a table with the selected country and peers side by side across the indicators behind the score. The efficiency panel shows the frontier (selected country as a large red dot) and the component scores of the selected country and peers.
+5. Climate assessment and PIM tracker only cover a few countries. For any other country the panel says so and lists the countries that were assessed, each one a button.
+
+Country-wise analysis never changes the data layer: it calls the same `datasets.py` resolvers and `queries.py` functions as the dashboard.
+
 Design choices worth knowing: the map palette runs orange (low) to indigo (high) so it works for
 red-green colour-blind users; Fira Sans is self-hosted in `assets/fonts` (SIL OFL licence) so it
 loads even where Google Fonts is blocked.
@@ -33,6 +46,10 @@ loads even where Google Fonts is blocked.
 ```
 app.py            Dash app: routing + every callback (tab, filters, data, selection)
 pages.py          Layouts: Overview page and the one-page Dashboard
+country_page.py   Country-wise analysis page: layout + all of its callbacks (every id starts with 'cw-')
+country_data.py   Data side of that page: country list, URL state, caches, peer/region scoping,
+                    thinned map shapes and map framing (no Dash, no figures)
+country_figures.py  Plotly figures for that page: faded map + highlighted overlay, frontier, components
 datasets.py       Registry of the 7 benchmarks: plain-language copy, filters, and the
                     adapters that call queries.py and return one common "view model"
 utils.py          Colours, Plotly figure builders, header/footer, legend, KPI strip,
@@ -60,6 +77,9 @@ This imports the real `queries.py` but replaces the two network calls with synth
 the scoring, popups and efficiency frontier are the real code running on **random numbers**.
 A "Demo data" badge is shown on every page. If the basemap tiles are blocked on your network,
 set `CBD_MAP_STYLE=white-bg` (or `carto-positron`); the default is `open-street-map`.
+The Country-wise page uses the same basemap; `CBD_COUNTRY_MAP_STYLE=carto-positron` gives it a quieter one
+that lets the faded fills stand out more. `CBD_GEOM_TOL_CONTEXT` and `CBD_GEOM_TOL_FOCUS` (degrees,
+default 0.03 and 0.008) set how much country outlines are simplified on that page.
 
 ## Setup
 
