@@ -16,6 +16,8 @@ Structure
   country_data.py     what to show for one country (re-uses datasets.py, no Dash)
   country_figures.py  its maps and charts: selected country red, others lighter
 
+  release_notes.py    the release-notes page (content + layout)
+
 How the Dashboard page works
   view-store   which benchmark tab is active (mirrors the URL hash, e.g. #gtmi)
   filters      f0..f2 are generic dropdown "slots"; each benchmark decides how
@@ -40,6 +42,7 @@ import country_page
 import datasets as ds
 import exports as ex
 import pages
+import release_notes
 import queries as q
 import utils as u
 
@@ -92,6 +95,7 @@ app.index_string = """<!DOCTYPE html>
 #   ?page=country-wise-cbd-analysis
 #                        every benchmark for one country on a single page;
 #                        country and peers in the hash, e.g. #country=KHM&peers=VNM,THA
+#   ?page=release-notes  what changed in each version (opened in a new tab)
 
 app.layout = html.Div([
     dcc.Location(id="url", refresh=False),
@@ -128,6 +132,8 @@ def render_page(search, hash_):
         # Country and peers come from the hash and seed the dropdowns; after that the
         # dropdowns are the source of truth (country_page keeps the hash in step).
         return country_page.layout(LOGO_WHITE_URL, WB_LOGO_URL, hash_)
+    if page == u.RELEASE_NOTES_PAGE:
+        return release_notes.layout(LOGO_WHITE_URL, WB_LOGO_URL)
     return pages.not_found_layout(LOGO_WHITE_URL)
 
 
@@ -143,6 +149,8 @@ app.clientside_callback(
             title = (t || "Dashboard") + " - " + base;
         } else if (page === %s) {
             title = "Country-wise analysis - " + base;
+        } else if (page === %s) {
+            title = "Release notes - " + base;
         } else if (views[page]) {
             title = views[page] + " - " + base;
         }
@@ -150,7 +158,7 @@ app.clientside_callback(
         return "";
     }
     """ % (json.dumps(u.BASE_TITLE), json.dumps({k: v["title"] for k, v in ds.DATASETS.items()}),
-           json.dumps(u.COUNTRY_PAGE)),
+           json.dumps(u.COUNTRY_PAGE), json.dumps(u.RELEASE_NOTES_PAGE)),
     Output("title-sink", "title"),
     Input("url", "search"),
     Input("url", "hash"),

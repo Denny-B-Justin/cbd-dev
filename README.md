@@ -14,6 +14,7 @@ sidebar, plus a home page that was a table. It is now three pages:
 | **Overview** | `/` | Plain-language introduction, "How it works" in three steps, the seven benchmarks grouped as *Global* and *Regional*, how to read the scores, and **Launch Tool** and **Country-wise analysis** buttons |
 | **Dashboard** | `/?page=dashboard#gccii` | Everything on one page (see below). The text after `#` is the active tab, so every view has a shareable link |
 | **Country-wise analysis** | `/?page=country-wise-cbd-analysis#country=KHM&peers=VNM,THA` | Pick one country and see every benchmark for it on one page (see below). The text after `#` holds the country and peers, so every view has a shareable link |
+| **Release notes** | `/?page=release-notes` | What changed in each version. Opens in a new tab from the header and footer; the content is the `RELEASES` list in `release_notes.py` |
 
 Old links such as `?page=gtmi` still work and open the matching tab.
 
@@ -50,6 +51,7 @@ country_page.py   Country-wise analysis page: layout + all of its callbacks (eve
 country_data.py   Data side of that page: country list, URL state, caches, peer/region scoping,
                     thinned map shapes and map framing (no Dash, no figures)
 country_figures.py  Plotly figures for that page: faded map + highlighted overlay, frontier, components
+release_notes.py  Release-notes page: the RELEASES list (newest first) + its layout
 datasets.py       Registry of the 7 benchmarks: plain-language copy, filters, and the
                     adapters that call queries.py and return one common "view model"
 utils.py          Colours, Plotly figure builders, header/footer, legend, KPI strip,

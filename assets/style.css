@@ -10,6 +10,8 @@
      3. Header and footer            7. Dashboard: map, legend, detail pane
      4. Overview: hero               8. Dropdown theme, small screens, motion
                                      9. Country-wise page (country-wise-cbd-analysis)
+                                    10. Chart exports
+                                    11. Release notes (release-notes)
    ============================================================================ */
 
 /* 1. Fonts and design tokens ------------------------------------------------ */
@@ -605,3 +607,38 @@ button { font-family: inherit; font-size: inherit; cursor: pointer; }
 .exp-row.is-inline { margin: 0; }
 .viz-export .exp-row { margin: 0; }
 .is-frontier .viz-col.show-components .viz-export { display: none; }
+
+/* ── 11. Release notes (release_notes.py) ─────────────────────────────────────────────────── */
+.rn-hero { background: var(--navy); color: #fff; padding: 56px 24px 44px; }
+.rn-title { font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1.1; font-weight: 700; letter-spacing: -.01em; }
+.rn-lede { margin-top: 14px; max-width: 54ch; font-size: 18px; line-height: 1.55; color: #CBD8E8; font-weight: 300; }
+.rn-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.rn-jump a { padding: 5px 14px; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; font-size: 14px;
+  font-weight: 500; font-variant-numeric: tabular-nums; }
+.rn-jump a:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+.rn-hero :focus-visible { outline-color: #fff; }
+
+.rn { background: var(--page); padding-top: 24px; }
+.rn-release { display: grid; grid-template-columns: 280px 1fr; gap: 40px; padding: 40px 0;
+  border-bottom: 1px solid var(--line); scroll-margin-top: calc(var(--header-h) + 12px); }
+.rn-release:last-child { border-bottom: 0; }
+.rn-side { position: sticky; top: calc(var(--header-h) + 24px); align-self: start; }
+.rn-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.rn-version { font-size: 15px; font-weight: 600; color: var(--indigo); font-variant-numeric: tabular-nums; }
+.rn-badge { padding: 2px 10px; border-radius: 999px; background: var(--orange); color: var(--navy);
+  font-size: 12.5px; font-weight: 600; line-height: 1.5; }
+.rn-date { font-size: 14px; color: var(--ink-mute); }
+.rn-name { margin-top: 8px; font-size: 22px; line-height: 1.25; font-weight: 600; color: var(--navy); }
+.rn-summary { font-size: 17px; color: var(--ink); max-width: 66ch; }
+.rn-group { margin-top: 24px; }
+.rn-group-title { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-mute); }
+.rn-list { margin-top: 8px; display: grid; gap: 6px; }
+.rn-list li { position: relative; padding-left: 18px; color: var(--ink-soft); font-size: 15.5px; line-height: 1.5; max-width: 72ch; }
+.rn-list li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--teal); }
+
+@media (max-width: 900px) {
+  .rn-hero { padding: 40px 20px 32px; }
+  .rn-release { grid-template-columns: 1fr; gap: 16px; padding: 32px 0; }
+  .rn-side { position: static; }
+}

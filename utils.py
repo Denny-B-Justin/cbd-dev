@@ -39,7 +39,8 @@ HOME_HREF = "?"                      # relative on purpose - see page_href()
 DASHBOARD_HREF = "?page=dashboard"
 COUNTRY_PAGE = "country-wise-cbd-analysis"
 COUNTRY_HREF = f"?page={COUNTRY_PAGE}"
-RELEASE_NOTES_URL = "https://pim-pam.net/cbd-release-notes/"
+RELEASE_NOTES_PAGE = "release-notes"
+RELEASE_NOTES_HREF = f"?page={RELEASE_NOTES_PAGE}"
 
 
 GLOBAL_REGIONS = [
@@ -411,14 +412,15 @@ def sorted_rows(vm):
 # ══════════════════════════════════════════════════════════════════════════
 
 def build_header(current_page="", logo_src=None):
-    """current_page: '' (overview), 'dashboard' or 'country' (country-wise analysis)."""
+    """current_page: '' (overview), 'dashboard', 'country' (country-wise analysis) or RELEASE_NOTES_PAGE."""
     def nav_link(label, href, key):
         current = key == current_page
         return dcc.Link(label, href=href, className="nav-link" + (" is-current" if current else ""))
 
-    def ext_link(label, href):
+    def ext_link(label, href, key=None):
+        current = key is not None and key == current_page
         return html.A([label, icon("external")], href=href, target="_blank",
-                      rel="noopener noreferrer", className="nav-link")
+                      rel="noopener noreferrer", className="nav-link" + (" is-current" if current else ""))
 
     return html.Header(
         className="app-header",
@@ -432,7 +434,7 @@ def build_header(current_page="", logo_src=None):
                 nav_link("Overview", HOME_HREF, ""),
                 nav_link("Dashboard", DASHBOARD_HREF, "dashboard"),
                 nav_link("Country-wise analysis", COUNTRY_HREF, "country"),
-                ext_link("Release notes", RELEASE_NOTES_URL),
+                ext_link("Release notes", RELEASE_NOTES_HREF, RELEASE_NOTES_PAGE),
             ]),
         ]),
     )
@@ -446,7 +448,7 @@ def build_footer(wb_logo_src=None):
                    "asset management"),
         ]),
         html.Nav(className="footer-links", **{"aria-label": "Footer"}, children=[
-            html.A("Release notes", href=RELEASE_NOTES_URL, target="_blank", rel="noopener noreferrer"),
+            html.A("Release notes", href=RELEASE_NOTES_HREF, target="_blank", rel="noopener noreferrer"),
         ]),
     ]))
 
