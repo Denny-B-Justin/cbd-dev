@@ -4,7 +4,9 @@ A Python/Dash port of the PIMPAM Country Benchmarking Tool. No FastAPI
 server in front — Dash callbacks call straight into `queries.py`, which reads
 its tables from **Databricks Unity Catalog** (previously local CSVs).
 
-## What changed in the redesign
+## Link: https://datanalytics.worldbank.org/country-benchmarking-dashboard/
+
+## Country-wise Dashboard
 
 The app used to be seven separate pages (one per dataset), each with its own
 sidebar, plus a home page that was a table. It is now three pages:
